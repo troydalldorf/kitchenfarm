@@ -103,7 +103,7 @@ function logstatus(m) {
 }
 
 // boot
-logstatus({ sensor: 'kfarm1: online' });
+logstatus({ sensor: 'kfhome1' });
 readDht22(m => {
     logstatus(m);
 });
