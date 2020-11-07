@@ -1,2 +1,3 @@
 node_modules/
 azure-iot-samples-node/
+package-lock.json
