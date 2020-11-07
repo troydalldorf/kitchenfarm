@@ -104,3 +104,6 @@ If you've run, stopped, and re-run the app and see an error like `{ Error: , Rem
 ### LED not lighting
 
 Make sure the longer of the two pins is connected to the positive terminal.
+
+# Packages
+## PM2 to run app.js as a process.
