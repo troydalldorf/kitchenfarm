@@ -107,3 +107,7 @@ Make sure the longer of the two pins is connected to the positive terminal.
 
 # Packages
 ## PM2 to run app.js as a process.
+
+# References
+https://azure.microsoft.com/en-us/blog/creating-iot-applications-with-azure-database-for-postgresql/
+

@@ -24,7 +24,7 @@ client.open(function (err) {
   }
 });
 
-// temp init 
+// temp init
 var dht22sensor = require("node-dht-sensor");
 
 // iot send
@@ -63,16 +63,21 @@ async function initTsl2561()
 // fan controller
 const Gpio = require('pigpio').Gpio;
 const fan = new Gpio(14, {mode:Gpio.OUTPUT});
+var lastFanSpeed = 0;
 
 function fanSpeed(speed) {
     fan.pwmWrite(200-speed);
+    if (speed !== lastFanSpeed) {
+        send({ sensor: 'fan', sensor_type: 'fan', unit:'%', value: speed/200})
+        lastFanSpeed = speed;
+    }
 }
 
 // DHT22
 function readDht22(result) {
     // temp and humidity
     dht22sensor.read(22, 4, function(err, temperature, humidity) {
-        var message = {
+        let message = {
             sensor: 'humidity_temp_sensor',
             sensor_type: 'DHT22'
         };
@@ -93,7 +98,7 @@ function readDht22(result) {
 }
 
 // log status
-function logstatus(m) {
+function logStatus(m) {
     if (m.error != null) {
         console.error('Sensor offline: ' + m.sensor + '=> error: ' + m.error + '=> cause: ' + m.cause);
     }
@@ -103,9 +108,9 @@ function logstatus(m) {
 }
 
 // boot
-logstatus({ sensor: 'kfhome1' });
+logStatus({ sensor: 'kfhome1' });
 readDht22(m => {
-    logstatus(m);
+    logStatus(m);
 });
 
 // interval
