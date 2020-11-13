@@ -50,19 +50,14 @@ async function initTsl2561()
         await tsl2561sensor.enable();
 }
 
-initTsl2561()
-    .then(async ()=> {
-        let broadband = await tsl2561sensor.getBroadband();
-        let infrared = await tsl2561sensor.getInfrared();
-        let lux = await tsl2561sensor.getLux();
-        send({ sensor: 'light', sensor_type: 'tsl2561', unit: 'lux', value: lux});
-        send({ sensor: 'infrared', sensor_type: 'tsl2561', unit: '?', value: infrared});
-        send({ sensor: 'broadband', sensor_type: 'tsl2561', unit:'?', value: broadband});
-    })
-    .catch(err => {
-        send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'unable to read sensor', cause:  err});
-        console.error(err);
-    });
+readTsl2561(result) {
+    let broadband = await tsl2561sensor.getBroadband();
+    let infrared = await tsl2561sensor.getInfrared();
+    let lux = await tsl2561sensor.getLux();
+    result({ sensor: 'light', sensor_type: 'tsl2561', unit: 'lux', value: lux});
+    result({ sensor: 'infrared', sensor_type: 'tsl2561', unit: '?', value: infrared});
+    result({ sensor: 'broadband', sensor_type: 'tsl2561', unit:'?', value: broadband});
+}
 
 // fan controller
 const Gpio = require('pigpio').Gpio;
@@ -114,12 +109,15 @@ function logStatus(m) {
 }
 
 // boot
-logStatus({ sensor: 'kfarm-pi' });
-readDht22(m => {
-    logStatus(m);
-});
-
 send({ sensor: 'kfarm-os', sensor_type: 'raspberryi-pi-3b' });
+readDht22(m => { logStatus(m); });
+initTsl2561()
+    .then(async ()=> {
+        readTsl2561(m=> { logStatus; });
+    })
+    .catch(err => {
+        send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'unable to read sensor', cause:  err});
+    });
 
 // interval
 setInterval(() => {
@@ -136,5 +134,8 @@ setInterval(() => {
                 fanSpeed(25);
             }
         }
+    });
+    readTsl2561(measurement => {
+        send(measurement);
     });
 }, 30000);

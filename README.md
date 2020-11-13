@@ -110,4 +110,6 @@ Make sure the longer of the two pins is connected to the positive terminal.
 
 # References
 https://azure.microsoft.com/en-us/blog/creating-iot-applications-with-azure-database-for-postgresql/
-
+- Pi Download: https://www.raspberrypi.org/downloads/raspberry-pi-os/
+- Pi Copy image to flash: https://www.raspberrypi.org/documentation/installation/installing-images/mac.md
+- Pi Setup: https://www.w3schools.com/nodejs/nodejs_raspberrypi.asp
