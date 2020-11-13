@@ -35,8 +35,6 @@ function send(measurement) {
     client.sendEvent(message, function (err) {
       if (err) {
         console.error('Could not send: ' + err.toString());
-      } else {
-        console.log('Message sent: ' + message.messageId);
       }
     });
 }
@@ -53,12 +51,16 @@ async function initTsl2561()
 }
 
 initTsl2561()
-    .then(()=> {
-        let broadband = tsl2561sensor.getBroadband();
-        let infrared = tsl2561sensor.getInfrared();
-        let lux = tsl2561sensor.getLux();
+    .then(async ()=> {
+        let broadband = await tsl2561sensor.getBroadband();
+        let infrared = await tsl2561sensor.getInfrared();
+        let lux = await tsl2561sensor.getLux();
+        send({ sensor: 'light', sensor_type: 'tsl2561', unit: 'lux', value: lux});
+        send({ sensor: 'infrared', sensor_type: 'tsl2561', unit: '?', value: infrared});
+        send({ sensor: 'broadband', sensor_type: 'tsl2561', unit:'?', value: broadband});
     })
     .catch(err => {
+        send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'unable to read sensor', cause:  err});
         console.error(err);
     });
 
@@ -136,4 +138,3 @@ setInterval(() => {
         }
     });
 }, 30000);
-*/
