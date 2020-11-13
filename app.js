@@ -3,144 +3,134 @@
 
 'use strict';
 
-var uuid = require('uuid');
-var Protocol = require('azure-iot-device-http').Http;
-var Client = require('azure-iot-device').Client;
-var Message = require('azure-iot-device').Message;
-var connectionString = 'HostName=kitchenfarm.azure-devices.net;DeviceId=kfhome1;SharedAccessKey=rbv5TNwFxveIXeoTUYLLiDzP9rVVdIh2xfwgU1mgoVk='; //process.env.DEVICE_CONNECTION_STRING;
-var client = Client.fromConnectionString(connectionString, Protocol);
+const uuid = require('uuid');
+const Protocol = require('azure-iot-device-http').Http;
+const Client = require('azure-iot-device').Client;
+const Message = require('azure-iot-device').Message;
+const connectionString = 'HostName=kitchenfarm.azure-devices.net;DeviceId=kfhome1;SharedAccessKey=rbv5TNwFxveIXeoTUYLLiDzP9rVVdIh2xfwgU1mgoVk='; //process.env.DEVICE_CONNECTION_STRING;
+const client = Client.fromConnectionString(connectionString, Protocol);
+let currentStatus = {
+    location: 'kfarm-home1',
+    rack: 'top',
+    status: '',
+    timestamp: null,
+    temp: null,
+    humidity: null,
+    light: null,
+    infrared: null,
+    broadband: null,
+    fanSpeed: null,
+    errors: []
+};
 
 // init Azure IoT Hub client
 client.open(function (err) {
-  if (err) {
-    console.error('Could not connect: ' + err.message);
-  } else {
-    console.log('Client connected');
+    if (err) {
+        console.error('Could not connect: ' + err.message);
+    } else {
+        console.log('Client connected');
 
-    client.on('error', function (err) {
-      console.error(err.message);
-      process.exit(-1);
-    });
-  }
+        client.on('error', function (err) {
+            console.error(err.message);
+            process.exit(-1);
+        });
+    }
 });
 
-// temp init
-var dht22sensor = require("node-dht-sensor");
-
 // iot send
-function send(measurement) {
-    var message = new Message(JSON.stringify(measurement));
+function send(status) {
+    const message = new Message(JSON.stringify(status));
     message.messageId = uuid.v4();
     console.log('Sending message: ' + message.getData());
     client.sendEvent(message, function (err) {
-      if (err) {
-        console.error('Could not send: ' + err.toString());
-      }
+        if (err) {
+            console.error('Could not send: ' + err.toString());
+        }
     });
 }
 
+// tsl 2561
 const Tsl2561 = require("ada-tsl2561");
 let tsl2561sensor = new Tsl2561();
 
-async function initTsl2561()
-{
+async function initTsl2561() {
     await tsl2561sensor.init(1);
     let enabled = await tsl2561sensor.isEnabled();
-    if(!enabled)
+    if (!enabled)
         await tsl2561sensor.enable();
 }
 
-async function readTsl2561(result) {
-    let broadband = await tsl2561sensor.getBroadband();
-    let infrared = await tsl2561sensor.getInfrared();
-    let lux = await tsl2561sensor.getLux();
-    result({ sensor: 'light', sensor_type: 'tsl2561', unit: 'lux', value: lux});
-    result({ sensor: 'infrared', sensor_type: 'tsl2561', unit: '?', value: infrared});
-    result({ sensor: 'broadband', sensor_type: 'tsl2561', unit:'?', value: broadband});
+async function readTsl2561(status) {
+    status.broadband = await tsl2561sensor.getBroadband();
+    status.infrared = await tsl2561sensor.getInfrared();
+    status.lux = await tsl2561sensor.getLux();
 }
 
 // fan controller
 const Gpio = require('pigpio').Gpio;
-const fan = new Gpio(14, {mode:Gpio.OUTPUT});
-var lastFanSpeed = -1;
+const fan = new Gpio(14, {mode: Gpio.OUTPUT});
 
-function fanSpeed(speed) {
-    fan.pwmWrite(200-speed);
-    if (speed !== lastFanSpeed) {
-        send({ sensor: 'fan', sensor_type: 'fan', unit:'%', value: speed/200})
-        lastFanSpeed = speed;
+function fanSpeed(speed, status) {
+    fan.pwmWrite(200 - speed);
+    if (speed !== status.fanSpeed) {
+        status.fanSpeed = speed / 200;
     }
 }
 
 // DHT22
-function readDht22(result) {
+const dht22sensor = require('node-dht-sensor');
+
+function readDht22(status) {
     // temp and humidity
-    dht22sensor.read(22, 4, function(err, temperature, humidity) {
-        let message = {
-            sensor: 'humidity_temp_sensor',
-            sensor_type: 'DHT22'
-        };
-        if(err) {
-            message.error = 'Sensor Read Error';
-            message.cause = err.cause;
-            result(message);
-        }
-        else {
-            message.sensor = 'temp';
-            message.value = temperature*9/5 + 32; //Celcius to Fahrenheit
-            message.unit = 'F';
-            result(message);
-            message.sensor = 'humidity';
-            message.value = humidity;
-            message.unit = '%';
-            result(message);
+    dht22sensor.read(22, 4, function (err, temperature, humidity) {
+        console.log(temperature);
+        console.log('test');
+        if (err) {
+            status.errors.push({sensor:'dht22', error: 'Sensor Read Error', cause: err.cause})
+        } else {
+            status.temp = temperature * 9 / 5 + 32; //Celcius to Fahrenheit
+            status.humidity = humidity;
         }
     });
-}
-
-// log status
-function logStatus(m) {
-    if (m.error != null) {
-        console.error('Sensor offline: ' + m.sensor + '=> error: ' + m.error + '=> cause: ' + m.cause);
-    }
-    else {
-        console.error('Sensor online: ' + m.sensor);
-    }
 }
 
 // boot
-send({ sensor: 'kfarm-os', sensor_type: 'raspberryi-pi-3b' });
-readDht22(m => { logStatus(m); });
+currentStatus.status = 'Boot'
+readDht22(currentStatus);
 initTsl2561()
     .then(async () => {
-        readTsl2561(m=> { logStatus(m); });
+        await readTsl2561(currentStatus);
     })
     .catch(err => {
-        send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'Sensor Read Error', cause:  err});
+        currentStatus.errors.push({ sensor: 'tsl2561', error: 'Sensor Read Error', cause: err})
     });
+send(currentStatus);
+currentStatus.status = 'update';
 
 // interval
 setInterval(() => {
-    readDht22(measurement => {
-        send(measurement);
-        if (measurement.unit === 'F') {
-            if (measurement.value > 80) {
-                fanSpeed(200);
-            }
-            else if (measurement.value > 71) {
-                fanSpeed(100);
-            }
-            else {
-                fanSpeed(25);
-            }
-        }
-    });
-
+    // reset any errors
+    currentStatus.errors = [];
+    // take temp and humidity reading
+    readDht22(currentStatus);
+    // take light readings
     initTsl2561()
-        .then(async () => {
-            readTsl2561(m=> { send(m); });
+        .then(() => {
+            readTsl2561(currentStatus);
         })
         .catch(err => {
-            send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'Sensor Read Error', cause:  err});
+            currentStatus.errors.push({ sensor: 'tsl2561',  error: 'Sensor Read Error', cause: err });
         });
-}, 30000);
+        // fan logic
+        if (currentStatus.temp > 80) {
+            fanSpeed(200, currentStatus);
+        } else if (currentStatus.temp > 71) {
+            fanSpeed(100, currentStatus);
+        } else {
+            fanSpeed(25, currentStatus);
+        }
+        // report to IoT hub
+        send(currentStatus);
+    },
+    3000
+);

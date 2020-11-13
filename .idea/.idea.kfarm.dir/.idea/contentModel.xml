@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="$APPLICATION_CONFIG_DIR$/javascript/nodejs/12.16.3/core-modules" t="IncludeRecursive" />
+    <e p="$APPLICATION_CONFIG_DIR$/scratches" t="IncludeRecursive" />
+    <e p="$USER_HOME$/Library/Caches/JetBrains/Rider2020.2/extResources" t="IncludeRecursive" />
+    <e p="$USER_HOME$/Library/Caches/JetBrains/Rider2020.2/javascript/typings/node/12.19.4/node_modules/@types" t="IncludeRecursive" />
+    <e p="$USER_HOME$/Library/Caches/JetBrains/Rider2020.2/resharper-host/local/Transient/Rider/v202/SolutionCaches/_.19.00" t="ExcludeRecursive" />
+    <e p="$PROJECT_DIR$" t="IncludeFlat">
+      <e p="node_modules/@azure/abort-controller" t="IncludeRecursive" />
+      <e p="node_modules/@azure/core-auth" t="IncludeRecursive" />
+      <e p="node_modules/@azure/core-http" t="IncludeRecursive" />
+      <e p="node_modules/@azure/core-lro" t="IncludeRecursive" />
+      <e p="node_modules/@azure/core-paging" t="IncludeRecursive" />
+      <e p="node_modules/@azure/core-tracing" t="IncludeRecursive" />
+      <e p="node_modules/@azure/logger" t="IncludeRecursive" />
+      <e p="node_modules/@azure/storage-blob" t="IncludeRecursive" />
+      <e p="node_modules/@opencensus/web-types" t="IncludeRecursive" />
+      <e p="node_modules/@opentelemetry/api" t="IncludeRecursive" />
+      <e p="node_modules/@opentelemetry/context-base" t="IncludeRecursive" />
+      <e p="node_modules/@types" t="IncludeRecursive">
+        <e p="node" t="IncludeRecursive" />
+      </e>
+      <e p="node_modules/azure-iot-common" t="IncludeRecursive" />
+      <e p="node_modules/azure-iot-device" t="IncludeRecursive" />
+      <e p="node_modules/azure-iot-device-http" t="IncludeRecursive" />
+      <e p="node_modules/azure-iot-http-base" t="IncludeRecursive" />
+      <e p="node_modules/form-data" t="IncludeRecursive" />
+      <e p="node_modules/tslib" t="IncludeRecursive" />
+      <e p="node_modules/uuid" t="IncludeRecursive" />
+    </e>
+  </component>
+</project>
