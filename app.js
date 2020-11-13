@@ -113,10 +113,10 @@ send({ sensor: 'kfarm-os', sensor_type: 'raspberryi-pi-3b' });
 readDht22(m => { logStatus(m); });
 initTsl2561()
     .then(async () => {
-        readTsl2561(m=> { logStatus; });
+        readTsl2561(m=> { logStatus(m); });
     })
     .catch(err => {
-        send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'unable to read sensor', cause:  err});
+        send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'Sensor Read Error', cause:  err});
     });
 
 // interval
@@ -138,5 +138,8 @@ setInterval(() => {
     readTsl2561()
         .then(async measurement => {
             send(measurement);
+        })
+        .catch(err => {
+            send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'Sensor Read Error', cause:  err});
         });
 }, 30000);
