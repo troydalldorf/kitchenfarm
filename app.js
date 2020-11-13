@@ -20,8 +20,13 @@ let currentStatus = {
     infrared: null,
     broadband: null,
     fanSpeed: null,
-    errors: []
+    errors: [ ]
 };
+
+function error(status, err)
+{
+    status.errors[status.errors.length] = err;
+}
 
 // init Azure IoT Hub client
 client.open(function (err) {
@@ -29,7 +34,6 @@ client.open(function (err) {
         console.error('Could not connect: ' + err.message);
     } else {
         console.log('Client connected');
-
         client.on('error', function (err) {
             console.error(err.message);
             process.exit(-1);
@@ -81,12 +85,10 @@ function fanSpeed(speed, status) {
 const dht22sensor = require('node-dht-sensor');
 
 function readDht22(status) {
-    // temp and humidity
     dht22sensor.read(22, 4, function (err, temperature, humidity) {
-        console.log(temperature);
-        console.log('test');
         if (err) {
-            status.errors.push({sensor:'dht22', error: 'Sensor Read Error', cause: err.cause})
+            console.error(err);
+            error(status, {sensor:'dht22', error: 'Sensor Read Error', cause: err.cause});
         } else {
             status.temp = temperature * 9 / 5 + 32; //Celcius to Fahrenheit
             status.humidity = humidity;
@@ -102,7 +104,7 @@ initTsl2561()
         await readTsl2561(currentStatus);
     })
     .catch(err => {
-        currentStatus.errors.push({ sensor: 'tsl2561', error: 'Sensor Read Error', cause: err})
+        error(currentStatus, { sensor: 'tsl2561', error: 'Sensor Read Error', cause: err})
     });
 send(currentStatus);
 currentStatus.status = 'update';
@@ -110,7 +112,7 @@ currentStatus.status = 'update';
 // interval
 setInterval(() => {
     // reset any errors
-    currentStatus.errors = [];
+    // currentStatus.errors = [];
     // take temp and humidity reading
     readDht22(currentStatus);
     // take light readings
@@ -119,7 +121,7 @@ setInterval(() => {
             readTsl2561(currentStatus);
         })
         .catch(err => {
-            currentStatus.errors.push({ sensor: 'tsl2561',  error: 'Sensor Read Error', cause: err });
+            error(status, { sensor: 'tsl2561',  error: 'Sensor Read Error', cause: err });
         });
         // fan logic
         if (currentStatus.temp > 80) {
@@ -131,6 +133,7 @@ setInterval(() => {
         }
         // report to IoT hub
         send(currentStatus);
+        currentStatus.errors = [];
     },
     3000
 );
