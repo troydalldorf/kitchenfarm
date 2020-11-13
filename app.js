@@ -41,7 +41,6 @@ function send(measurement) {
     });
 }
 
-/*
 const Tsl2561 = require("ada-tsl2561");
 let tsl2561sensor = new Tsl2561();
 
@@ -53,12 +52,15 @@ async function initTsl2561()
         await tsl2561sensor.enable();
 }
 
-(async() => initTsl2561())();
-
-//let broadband = tsl2561sensor.getBroadband();
-//let infrared = tsl2561sensor.getInfrared();
-//let lux = tsl2561sensor.getLux();
-*/
+initTsl2561()
+    .then(()=> {
+        let broadband = tsl2561sensor.getBroadband();
+        let infrared = tsl2561sensor.getInfrared();
+        let lux = tsl2561sensor.getLux();
+    })
+    .catch(err => {
+        console.error(err);
+    });
 
 // fan controller
 const Gpio = require('pigpio').Gpio;
@@ -130,3 +132,4 @@ setInterval(() => {
         }
     });
 }, 30000);
+*/
