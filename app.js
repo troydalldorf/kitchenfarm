@@ -135,9 +135,10 @@ setInterval(() => {
             }
         }
     });
-    readTsl2561()
-        .then(async measurement => {
-            send(measurement);
+
+    initTsl2561()
+        .then(async () => {
+            readTsl2561(m=> { send(m); });
         })
         .catch(err => {
             send({sensor: 'light,infrared,broadband', sensor_type: 'tsl2561', error: 'Sensor Read Error', cause:  err});
