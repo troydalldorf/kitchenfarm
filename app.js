@@ -50,7 +50,7 @@ async function initTsl2561()
         await tsl2561sensor.enable();
 }
 
-readTsl2561(result) {
+function readTsl2561(result) {
     let broadband = await tsl2561sensor.getBroadband();
     let infrared = await tsl2561sensor.getInfrared();
     let lux = await tsl2561sensor.getLux();
