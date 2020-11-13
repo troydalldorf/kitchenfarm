@@ -50,7 +50,7 @@ async function initTsl2561()
         await tsl2561sensor.enable();
 }
 
-function readTsl2561(result) {
+async function readTsl2561(result) {
     let broadband = await tsl2561sensor.getBroadband();
     let infrared = await tsl2561sensor.getInfrared();
     let lux = await tsl2561sensor.getLux();
@@ -112,7 +112,7 @@ function logStatus(m) {
 send({ sensor: 'kfarm-os', sensor_type: 'raspberryi-pi-3b' });
 readDht22(m => { logStatus(m); });
 initTsl2561()
-    .then(async ()=> {
+    .then(async () => {
         readTsl2561(m=> { logStatus; });
     })
     .catch(err => {
@@ -135,7 +135,8 @@ setInterval(() => {
             }
         }
     });
-    readTsl2561(measurement => {
-        send(measurement);
-    });
+    readTsl2561()
+        .then(async measurement => {
+            send(measurement);
+        });
 }, 30000);
