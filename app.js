@@ -121,11 +121,11 @@ send({ sensor: 'kfarm-os', sensor_type: 'raspberryi-pi-3b' });
 setInterval(() => {
     readDht22(measurement => {
         send(measurement);
-        if (measurement.unit === 'C') {
-            if (measurement.value > 26) {
+        if (measurement.unit === 'F') {
+            if (measurement.value > 80) {
                 fanSpeed(200);
             }
-            else if (measurement.value > 22) {
+            else if (measurement.value > 71) {
                 fanSpeed(100);
             }
             else {
