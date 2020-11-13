@@ -65,7 +65,7 @@ initTsl2561()
 // fan controller
 const Gpio = require('pigpio').Gpio;
 const fan = new Gpio(14, {mode:Gpio.OUTPUT});
-var lastFanSpeed = 0;
+var lastFanSpeed = -1;
 
 function fanSpeed(speed) {
     fan.pwmWrite(200-speed);
@@ -89,9 +89,11 @@ function readDht22(result) {
             result(message);
         }
         else {
-            message.value = temperature;
-            message.unit = 'C';
+            message.sensor = 'temp';
+            message.value = temperature*9/5 + 32; //Celcius to Fahrenheit
+            message.unit = 'F';
             result(message);
+            message.sensor = 'humidity';
             message.value = humidity;
             message.unit = '%';
             result(message);
@@ -110,24 +112,26 @@ function logStatus(m) {
 }
 
 // boot
-logStatus({ sensor: 'kfhome1' });
+logStatus({ sensor: 'kfarm-pi' });
 readDht22(m => {
     logStatus(m);
 });
+
+send({ sensor: 'kfarm-os', sensor_type: 'raspberryi-pi-3b' });
 
 // interval
 setInterval(() => {
     readDht22(measurement => {
         send(measurement);
-        if (measurement.unit === 'C') {
-            if (measurement.value > 24) {
+        if (measurement.unit === 'F') {
+            if (measurement.value > 80) {
                 fanSpeed(200);
             }
-            else if (measurement.value > 22) {
+            else if (measurement.value > 71) {
                 fanSpeed(100);
             }
-            else if (measurement.value < 20) {
-                fanSpeed(0);
+            else {
+                fanSpeed(25);
             }
         }
     });
