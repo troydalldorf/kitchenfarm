@@ -24,7 +24,7 @@ client.open(function (err) {
   }
 });
 
-// temp init 
+// temp init
 var dht22sensor = require("node-dht-sensor");
 
 // iot send
@@ -68,8 +68,8 @@ var lastFanSpeed = -1;
 function fanSpeed(speed) {
     fan.pwmWrite(200-speed);
     if (speed !== lastFanSpeed) {
+        send({ sensor: 'fan', sensor_type: 'fan', unit:'%', value: speed/200})
         lastFanSpeed = speed;
-        send({ sensor: 'fan', sensor_type: 'fan', unit: '%', value: speed/2 });
     }
 }
 
@@ -77,7 +77,7 @@ function fanSpeed(speed) {
 function readDht22(result) {
     // temp and humidity
     dht22sensor.read(22, 4, function(err, temperature, humidity) {
-        var message = {
+        let message = {
             sensor: 'humidity_temp_sensor',
             sensor_type: 'DHT22'
         };
@@ -100,7 +100,7 @@ function readDht22(result) {
 }
 
 // log status
-function logstatus(m) {
+function logStatus(m) {
     if (m.error != null) {
         console.error('Sensor offline: ' + m.sensor + '=> error: ' + m.error + '=> cause: ' + m.cause);
     }
@@ -110,9 +110,9 @@ function logstatus(m) {
 }
 
 // boot
-logstatus({ sensor: 'kfarm-pi' });
+logStatus({ sensor: 'kfarm-pi' });
 readDht22(m => {
-    logstatus(m);
+    logStatus(m);
 });
 
 send({ sensor: 'kfarm-os', sensor_type: 'raspberryi-pi-3b' });
